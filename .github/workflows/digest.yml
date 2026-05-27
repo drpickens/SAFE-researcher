@@ -1,0 +1,72 @@
+name: SAFE Researcher — Twice-Weekly Digest
+
+on:
+  schedule:
+    # Tuesday 14:00 UTC (9am Eastern / 7am Pacific)
+    - cron: "0 14 * * 2"
+    # Friday 14:00 UTC
+    - cron: "0 14 * * 5"
+  workflow_dispatch:
+    inputs:
+      days_back:
+        description: "How many days back to search (default: 8)"
+        required: false
+        default: "8"
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install --quiet requests
+
+      - name: Run SAFE Researcher
+        run: python researcher.py
+        env:
+          PYTHONUNBUFFERED: "1"
+
+      - name: Create GitHub Issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          DIGEST_FILE="digest-${DATE}.md"
+
+          if [ ! -f "$DIGEST_FILE" ]; then
+            echo "Digest file not found: $DIGEST_FILE"
+            exit 1
+          fi
+
+          # Create the 'digest' label if it doesn't exist yet
+          gh label create digest \
+            --description "Twice-weekly AI & medical education article digest" \
+            --color "0075ca" \
+            --repo "${{ github.repository }}" \
+            2>/dev/null || true
+
+          # Create the issue with the full digest as the body
+          gh issue create \
+            --title "SAFE Digest ${DATE} — AI & Medical Education" \
+            --body-file "$DIGEST_FILE" \
+            --label "digest" \
+            --repo "${{ github.repository }}"
+
+      - name: Upload digest as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ github.run_id }}
+          path: digest-*.md
+          retention-days: 90
