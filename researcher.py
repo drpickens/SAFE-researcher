@@ -500,14 +500,22 @@ def build_digest(all_articles: list[dict], run_date: str) -> str:
         a["relevance"] = score_relevance(a)
 
     arise = [a for a in all_articles if a["source"] == "Arise Network"]
-    others = sorted(
-        [a for a in all_articles if a["source"] != "Arise Network"],
+
+    others = [a for a in all_articles if a["source"] != "Arise Network"]
+
+    # Preprints: arXiv source or no venue/journal (not yet peer-reviewed)
+    preprints = sorted(
+        [a for a in others if a["source"] == "arXiv" or "arxiv" in a.get("journal", "").lower()],
         key=lambda x: x["relevance"],
         reverse=True,
-    )
+    )[:5]
 
-    top = [a for a in others if a["relevance"] >= 6]
-    rest = [a for a in others if a["relevance"] < 6]
+    # Peer-reviewed: PubMed or Semantic Scholar with a journal/venue
+    peer_reviewed = sorted(
+        [a for a in others if a["source"] != "arXiv" and "arxiv" not in a.get("journal", "").lower()],
+        key=lambda x: x["relevance"],
+        reverse=True,
+    )[:5]
 
     lines = [
         f"# SAFE Researcher Digest — {run_date}",
@@ -532,28 +540,34 @@ def build_digest(all_articles: list[dict], run_date: str) -> str:
     lines += [
         "---",
         "",
-        "## Top Picks — Highest Relevance to SAFE",
+        "## Top 5 Peer-Reviewed Articles",
         "",
-        "_Articles most directly relevant to deskilling, AI teaching frameworks, "
-        "clinical reasoning, and institutional AI adoption in medical education._",
+        "_Ranked by relevance to deskilling, AI teaching frameworks, clinical reasoning, "
+        "and institutional AI adoption in medical education._",
         "",
     ]
 
-    if top:
-        for a in top:
-            lines.append(format_article(a))
+    if peer_reviewed:
+        for i, a in enumerate(peer_reviewed, 1):
+            lines.append(f"**{i}.**\n\n" + format_article(a))
     else:
-        lines.append("_No high-relevance articles found this period._\n")
+        lines.append("_No peer-reviewed articles found this period._\n")
 
-    if rest:
-        lines += [
-            "---",
-            "",
-            "## Additional Articles",
-            "",
-        ]
-        for a in rest[:15]:
-            lines.append(format_article(a))
+    lines += [
+        "---",
+        "",
+        "## Top 5 Preprints",
+        "",
+        "_Recent arXiv preprints — not yet peer-reviewed but capturing the fastest-moving evidence, "
+        "as seen with Shen & Tamkin (Anthropic) and the NOHARM work._",
+        "",
+    ]
+
+    if preprints:
+        for i, a in enumerate(preprints, 1):
+            lines.append(f"**{i}.**\n\n" + format_article(a))
+    else:
+        lines.append("_No preprints found this period._\n")
 
     lines += [
         "---",
