@@ -19,32 +19,32 @@ from datetime import datetime, timedelta
 DAYS_BACK = 8
 
 PUBMED_QUERIES = [
-    # Faculty workshop: deskilling evidence and teaching frameworks
-    "AI deskilling physicians clinicians skills",
-    "artificial intelligence medical education framework faculty",
-    "large language model clinical reasoning teaching attending",
-    "structured AI use medical education curriculum",
-    "AI adoption trainees residents medical students",
-    # Learner workshop: never-skilling, mis-skilling, prompting, automation bias
-    "ChatGPT knowledge retention medical students learning",
-    "AI diagnostic accuracy medical students errors hallucination",
-    "automation bias clinical decision support physicians",
-    "clinical problem representation expert reasoning AI",
-    "LLM AI clinical tool safety HIPAA healthcare",
+    # Bedside learner population: residents, interns, fellows, clinical-year students
+    "artificial intelligence residents interns clinical training",
+    "AI deskilling residents physicians clinical skills",
+    "large language model clinical reasoning residency training",
+    "ChatGPT AI use residents interns bedside",
+    "AI clinical decision support residents postgraduate training",
+    "AI adoption residents interns fellows postgraduate",
+    "automation bias clinical decision support residents trainees",
+    # Clerkship / MS3-MS4 (at the bedside, not pre-clinical)
+    "AI clerkship clinical year medical student bedside",
+    # Faculty teaching with residents at bedside
+    "AI teaching framework attending resident bedside supervision",
+    "LLM AI clinical tool safety residents HIPAA hallucination",
 ]
 
 ARXIV_QUERIES = [
-    # Covers both workshops
-    "AI deskilling never-skilling medical education clinical",
-    "LLM clinical reasoning expert prompt medical student",
+    "AI deskilling residents interns clinical reasoning bedside",
+    "LLM clinical reasoning expert prompt resident trainee",
     "NOHARM clinical safety large language model benchmark",
-    "automation bias AI clinical decision support physician",
+    "automation bias AI clinical decision resident physician",
 ]
 
 SEMANTIC_SCHOLAR_QUERIES = [
-    "AI medical education deskilling never-skilling mis-skilling framework",
-    "expert clinical prompting AI diagnostic reasoning learner",
-    "structured AI use bedside teaching faculty attending resident",
+    "AI deskilling never-skilling residents interns fellows clinical training",
+    "expert clinical prompting AI diagnostic reasoning resident trainee bedside",
+    "structured AI use bedside teaching attending resident supervision",
 ]
 
 ARISE_QUERIES = [
@@ -55,20 +55,24 @@ ARISE_QUERIES = [
 
 # --- Relevance scoring keywords ---
 
-# High value: directly tied to one of the two workshops
+# High value: bedside learner population and SAFE-specific themes
 SAFE_HIGH_VALUE = [
-    # Faculty workshop themes
-    "medical education", "clinical training", "physician training",
-    "health professions education", "clerkship", "faculty teaching",
-    "attending", "residency training", "faculty development",
-    "AI teaching framework", "structured ai",
-    # Learner workshop themes
-    "medical student", "intern", "resident",
+    # Target learner population — residents, interns, fellows, clinical-year students
+    "resident", "residents", "intern", "interns",
+    "fellow", "fellows", "fellowship",
+    "postgraduate", "post-graduate", "PGY",
+    "clerkship", "clinical year", "MS3", "MS4",
+    "junior doctor", "house officer", "trainee", "trainees",
+    # Faculty/attending context (SAFE is faculty-facing)
+    "attending", "faculty", "supervisor", "supervision",
+    "bedside teaching", "clinical supervision", "ward rounds",
+    # Core SAFE themes
     "clinical reasoning", "diagnostic reasoning",
     "knowledge retention", "learning outcomes",
-    "never-skilling", "mis-skilling", "cognitive crutch",
-    "automation bias", "hallucination clinical",
+    "never-skilling", "mis-skilling", "deskilling",
+    "cognitive crutch", "automation bias",
     "clinical problem representation", "expert prompt",
+    "AI teaching framework", "structured ai use",
 ]
 
 AI_KEYWORDS = [
@@ -84,7 +88,7 @@ FRAMEWORK_KEYWORDS = [
     "deskilling", "critical appraisal", "red-team",
 ]
 
-# Extra boost for topics directly cited or presented in both workshops
+# Extra boost: topics directly cited or presented in both workshops
 SAFE_SPECIFIC = [
     "deskilling", "never-skilling", "mis-skilling", "cognitive crutch",
     "knowledge retention", "DEFT-AI", "thinking habits model",
@@ -95,8 +99,16 @@ SAFE_SPECIFIC = [
     "expert context", "pre-test probability", "bayesian",
     "HIPAA AI", "de-identification", "sanctioned tool",
     "QI quality improvement AI", "bedside AI",
-    "penda health", "openai clinical", "AI error medical",
-    "trainee AI", "resident AI use", "medical student AI",
+    "penda health", "AI error medical",
+    "resident AI", "intern AI", "trainee AI use",
+]
+
+# Terms that lower priority — pre-clinical population, not the SAFE target
+DEPRIORITIZE = [
+    "undergraduate", "preclinical", "pre-clinical",
+    "first year medical student", "second year medical student",
+    "ms1", "ms2", "year 1", "year 2",
+    "nursing student", "pharmacy student",
 ]
 
 
@@ -440,28 +452,38 @@ def deduplicate(articles: list[dict]) -> list[dict]:
 
 def score_relevance(article: dict) -> int:
     """
-    Score 0–10 for relevance to the SAFE framework and AI in medical education.
-    Higher = more relevant.
+    Score 0–10 for relevance to the SAFE framework.
+    Target population: residents, interns, fellows, and MS3/MS4 on clerkship.
+    Faculty using SAFE with bedside learners.
     """
     text = (article["title"] + " " + article.get("abstract", "")).lower()
     score = 0
 
+    # Bedside learner population and SAFE themes (high weight)
     for kw in SAFE_HIGH_VALUE:
         if kw in text:
             score += 3
 
+    # AI presence (required but only counted once)
     for kw in AI_KEYWORDS:
         if kw in text:
             score += 2
-            break  # Only count once for AI presence
+            break
 
+    # Framework/educational method terms
     for kw in FRAMEWORK_KEYWORDS:
         if kw in text:
             score += 1
 
+    # SAFE-specific topics (extra boost)
     for kw in SAFE_SPECIFIC:
         if kw in text:
             score += 2
+
+    # Penalize pre-clinical / non-bedside populations
+    for kw in DEPRIORITIZE:
+        if kw in text:
+            score -= 3
 
     # Boost Arise Network items
     if article["source"] == "Arise Network":
@@ -474,7 +496,7 @@ def score_relevance(article: dict) -> int:
             score += 2
             break
 
-    return min(score, 10)
+    return max(0, min(score, 10))
 
 
 # ---------------------------------------------------------------------------
@@ -568,9 +590,10 @@ def build_digest(all_articles: list[dict], run_date: str) -> str:
         "",
         "## Top 5 Peer-Reviewed Articles",
         "",
-        "_Ranked by relevance to your two workshops. Priority topics: deskilling · never-skilling · "
-        "mis-skilling · automation bias · expert prompting · AI teaching frameworks (DEFT-AI, THM, SAFE) · "
-        "AI adoption among trainees · clinical AI tool safety._",
+        "_Prioritizing studies of **residents, interns, fellows, and MS3/MS4 on clerkship** — "
+        "the bedside learner population SAFE is designed for. Topics: deskilling · never-skilling · "
+        "mis-skilling · automation bias · expert prompting · AI teaching frameworks · "
+        "faculty supervision at the bedside._",
         "",
     ]
 
@@ -585,8 +608,8 @@ def build_digest(all_articles: list[dict], run_date: str) -> str:
         "",
         "## Top 5 Preprints",
         "",
-        "_Fast-moving arXiv preprints — the space where NOHARM, Shen & Tamkin, and Lopez et al. "
-        "appeared before peer review. Prioritized for direct workshop relevance._",
+        "_Fast-moving arXiv preprints — where NOHARM, Shen & Tamkin, and Lopez et al. "
+        "appeared before peer review. Same population priority: residents, interns, fellows, clerkship._",
         "",
     ]
 
