@@ -19,28 +19,32 @@ from datetime import datetime, timedelta
 DAYS_BACK = 8
 
 PUBMED_QUERIES = [
-    "artificial intelligence medical education",
-    "large language model medical students physicians",
-    "AI clinical reasoning teaching training",
-    "generative AI physician curriculum",
-    "ChatGPT medical education students",
-    "AI deskilling clinicians physicians",
-    "machine learning clinical education framework",
-    "AI diagnostic reasoning medical training",
-    "LLM clinical decision support education",
+    # Faculty workshop: deskilling evidence and teaching frameworks
+    "AI deskilling physicians clinicians skills",
+    "artificial intelligence medical education framework faculty",
+    "large language model clinical reasoning teaching attending",
+    "structured AI use medical education curriculum",
+    "AI adoption trainees residents medical students",
+    # Learner workshop: never-skilling, mis-skilling, prompting, automation bias
+    "ChatGPT knowledge retention medical students learning",
+    "AI diagnostic accuracy medical students errors hallucination",
+    "automation bias clinical decision support physicians",
+    "clinical problem representation expert reasoning AI",
+    "LLM AI clinical tool safety HIPAA healthcare",
 ]
 
 ARXIV_QUERIES = [
-    "AI medical education deskilling",
-    "LLM clinical reasoning training",
-    "NOHARM clinical safety large language model",
-    "generative AI physician training curriculum",
+    # Covers both workshops
+    "AI deskilling never-skilling medical education clinical",
+    "LLM clinical reasoning expert prompt medical student",
+    "NOHARM clinical safety large language model benchmark",
+    "automation bias AI clinical decision support physician",
 ]
 
 SEMANTIC_SCHOLAR_QUERIES = [
-    "artificial intelligence medical education framework institutions",
-    "AI clinical reasoning deskilling never-skilling physician",
-    "structured AI use clinical teaching bedside",
+    "AI medical education deskilling never-skilling mis-skilling framework",
+    "expert clinical prompting AI diagnostic reasoning learner",
+    "structured AI use bedside teaching faculty attending resident",
 ]
 
 ARISE_QUERIES = [
@@ -49,29 +53,50 @@ ARISE_QUERIES = [
     "MAST medical AI safety test",
 ]
 
-# Topics that score high relevance for the SAFE framework
+# --- Relevance scoring keywords ---
+
+# High value: directly tied to one of the two workshops
 SAFE_HIGH_VALUE = [
-    "medical education", "medical student", "clinical training", "physician training",
-    "clinical reasoning", "residency", "intern", "medical school", "nursing education",
-    "health professions education", "clerkship", "attending", "faculty teaching",
+    # Faculty workshop themes
+    "medical education", "clinical training", "physician training",
+    "health professions education", "clerkship", "faculty teaching",
+    "attending", "residency training", "faculty development",
+    "AI teaching framework", "structured ai",
+    # Learner workshop themes
+    "medical student", "intern", "resident",
+    "clinical reasoning", "diagnostic reasoning",
+    "knowledge retention", "learning outcomes",
+    "never-skilling", "mis-skilling", "cognitive crutch",
+    "automation bias", "hallucination clinical",
+    "clinical problem representation", "expert prompt",
 ]
 
 AI_KEYWORDS = [
     "artificial intelligence", "large language model", "llm", "chatgpt", "gpt",
     "machine learning", "generative ai", "claude", "gemini", "foundation model",
+    "openevidence", "uptodate", "doximity",
 ]
 
 FRAMEWORK_KEYWORDS = [
-    "framework", "curriculum", "structured", "pedagogical", "teaching approach",
-    "learning", "deskilling", "skill acquisition", "cognitive load", "reasoning",
-    "diagnostic", "clinical decision", "benchmark", "evaluation",
+    "framework", "curriculum", "structured", "pedagogical",
+    "skill acquisition", "cognitive load",
+    "diagnostic", "clinical decision", "benchmark",
+    "deskilling", "critical appraisal", "red-team",
 ]
 
+# Extra boost for topics directly cited or presented in both workshops
 SAFE_SPECIFIC = [
     "deskilling", "never-skilling", "mis-skilling", "cognitive crutch",
-    "knowledge retention", "faculty", "attending", "resident", "fellow",
-    "DEFT", "arise network", "NOHARM", "MAST", "healthbench",
-    "clinical safety", "AI adoption", "unstructured ai", "red-team",
+    "knowledge retention", "DEFT-AI", "thinking habits model",
+    "arise network", "NOHARM", "MAST", "healthbench",
+    "clinical safety", "AI adoption", "unstructured ai",
+    "automation bias", "alert fatigue", "AI hallucination",
+    "clinical problem representation", "semantic qualifier",
+    "expert context", "pre-test probability", "bayesian",
+    "HIPAA AI", "de-identification", "sanctioned tool",
+    "QI quality improvement AI", "bedside AI",
+    "penda health", "openai clinical", "AI error medical",
+    "trainee AI", "resident AI use", "medical student AI",
 ]
 
 
@@ -520,14 +545,15 @@ def build_digest(all_articles: list[dict], run_date: str) -> str:
     lines = [
         f"# SAFE Researcher Digest — {run_date}",
         "",
-        "> **SAFE Framework** (Assess first · AI consult together · Find what it missed) — "
-        "twice-weekly digest of AI × medical education literature.",
+        "> Tailored for two workshops: **Faculty Workshop** (AI & the Learner — ED Retreat) and "
+        "**Learner Workshop** (AI at the Bedside — Legacy RCH).",
         f"> **Sources:** PubMed · arXiv · Semantic Scholar · Arise Network &nbsp;|&nbsp; "
         f"**Period:** last {DAYS_BACK} days &nbsp;|&nbsp; **Next run:** {next_run_date()}",
         "",
         "---",
         "",
         "## Arise Network",
+        "_Check for new NOHARM/MAST benchmark updates and Arise-affiliated publications._",
         "",
     ]
 
@@ -542,8 +568,9 @@ def build_digest(all_articles: list[dict], run_date: str) -> str:
         "",
         "## Top 5 Peer-Reviewed Articles",
         "",
-        "_Ranked by relevance to deskilling, AI teaching frameworks, clinical reasoning, "
-        "and institutional AI adoption in medical education._",
+        "_Ranked by relevance to your two workshops. Priority topics: deskilling · never-skilling · "
+        "mis-skilling · automation bias · expert prompting · AI teaching frameworks (DEFT-AI, THM, SAFE) · "
+        "AI adoption among trainees · clinical AI tool safety._",
         "",
     ]
 
@@ -558,8 +585,8 @@ def build_digest(all_articles: list[dict], run_date: str) -> str:
         "",
         "## Top 5 Preprints",
         "",
-        "_Recent arXiv preprints — not yet peer-reviewed but capturing the fastest-moving evidence, "
-        "as seen with Shen & Tamkin (Anthropic) and the NOHARM work._",
+        "_Fast-moving arXiv preprints — the space where NOHARM, Shen & Tamkin, and Lopez et al. "
+        "appeared before peer review. Prioritized for direct workshop relevance._",
         "",
     ]
 
@@ -576,23 +603,32 @@ def build_digest(all_articles: list[dict], run_date: str) -> str:
         "",
         "| Source | Queries |",
         "|--------|---------|",
-        "| **PubMed** | AI medical education · LLM medical students · AI clinical reasoning · "
-        "generative AI curriculum · ChatGPT medical ed · AI deskilling · ML clinical ed · "
-        "AI diagnostic reasoning · LLM decision support |",
-        "| **arXiv** | AI medical ed deskilling · LLM clinical reasoning · NOHARM clinical safety · "
-        "generative AI physician training |",
-        "| **Semantic Scholar** | AI medical education frameworks · AI clinical reasoning deskilling · "
-        "structured AI clinical teaching |",
+        "| **PubMed** | AI deskilling physicians · AI medical education framework faculty · "
+        "LLM clinical reasoning teaching · structured AI curriculum · AI adoption trainees · "
+        "ChatGPT knowledge retention · AI diagnostic accuracy students · automation bias · "
+        "clinical problem representation · AI tool safety HIPAA |",
+        "| **arXiv** | AI deskilling never-skilling clinical · LLM expert prompt medical student · "
+        "NOHARM clinical safety benchmark · automation bias AI clinical |",
+        "| **Semantic Scholar** | AI medical education deskilling never-skilling framework · "
+        "expert clinical prompting AI diagnostic · structured AI bedside teaching |",
         "| **Arise Network** | bench.arise-ai.org leaderboard · NOHARM MAST papers · Arise AI evaluation |",
         "",
-        "## SAFE Framework Topics Tracked",
-        "- **Deskilling / Never-skilling / Mis-skilling** through AI use",
-        "- **Structured AI use** in clinical education (DEFT-AI, THM, SAFE)",
-        "- **Institutional programs** for teaching AI use in medical training",
-        "- **AI adoption rates** among trainees and attendings",
-        "- **Clinical safety benchmarks** (NOHARM, MAST, HealthBench)",
-        "- **Cognitive load and learning** effects of AI assistance",
-        "- **Faculty development** for AI-integrated teaching",
+        "## Workshop Topics Tracked",
+        "**Faculty Workshop (AI & the Learner — ED Retreat)**",
+        "- Deskilling evidence (colonoscopy RCT, radiology, pathology, surgery)",
+        "- Never-skilling: cognitive friction removed → foundational skills not built",
+        "- AI frameworks for teaching: DEFT-AI · THM · SAFE",
+        "- AI adoption rates among trainees and attendings",
+        "- Faculty development and structured AI supervision",
+        "- Arrive Network / NOHARM / MAST / HealthBench benchmarks",
+        "",
+        "**Learner Workshop (AI at the Bedside — Legacy RCH)**",
+        "- Never-skilling and mis-skilling: RCT evidence",
+        "- Automation bias and uncritical AI acceptance",
+        "- Expert vs. learner clinical problem representation and prompting",
+        "- Clinical AI tool safety: HIPAA, hallucination, sanctioned tools",
+        "- AI clinical performance benchmarks vs. published tools (UpToDate, OpenEvidence)",
+        "- How SAFE builds reasoning skills case-by-case",
         "",
         "_Generated by [SAFE Researcher Agent](../../blob/main/researcher.py) · "
         "[View all digests](../../issues?label=digest)_",
