@@ -1,0 +1,42 @@
+# .github/workflows/weekly-safe-sweep.yml
+# Weekly SAFE literature sweep — runs Monday 6am Pacific (13:00 UTC).
+# Test first with the manual "Run workflow" button (workflow_dispatch) before trusting the cron.
+#
+# Setup (one time):
+#   1. Put weekly-sweep-prompt.md in the repo root.
+#   2. In Claude Code (terminal), run /install-github-app — it installs the GitHub App
+#      and registers ANTHROPIC_API_KEY as a repo secret. (Repo admin required.)
+#   3. Commit this file to .github/workflows/ and trigger it manually once to verify.
+
+name: Weekly SAFE Lit Sweep
+
+on:
+  schedule:
+    - cron: "0 13 * * 1"   # Mondays 13:00 UTC = 6am Pacific (7am during PST)
+  workflow_dispatch:        # manual trigger for testing
+
+permissions:
+  contents: read
+  issues: write
+  id-token: write
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run SAFE literature sweep
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Read the file weekly-sweep-prompt.md in this repository and follow it completely.
+            Before posting, list recent issues in this repo and dedupe: do not re-report
+            articles already covered in a prior "Weekly SAFE Lit Sweep" issue.
+            Post your findings as a single new GitHub issue using `gh issue create`.
+            If the week is genuinely thin, post the issue anyway and say so.
+          claude_args: "--max-turns 40 --allowedTools Bash(gh issue list:*),Bash(gh issue view:*),Bash(gh issue create:*),WebSearch,WebFetch,Read"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
