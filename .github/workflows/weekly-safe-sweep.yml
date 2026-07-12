@@ -30,7 +30,8 @@ jobs:
       - name: Run SAFE literature sweep
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # The repo secret holding the Anthropic API key is named "API"
+          anthropic_api_key: ${{ secrets.API }}
           prompt: |
             Read the file weekly-sweep-prompt.md in this repository and follow it completely.
             Before posting, list recent issues in this repo and dedupe: do not re-report
