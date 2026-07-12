@@ -12,6 +12,8 @@ Your job runs weekly: find what's new, read it, and recommend concrete deck chan
 
 **Lane C — How medical professionals experience AI.** Attitude/adoption surveys, trust and fear studies, resistance and change-management literature, generational/training-level differences. This lane shapes HOW Angela frames talks so skeptical audiences listen instead of tuning out — flag anything about what makes clinicians defensive vs. receptive.
 
+**Lane D — AI helping patients as a clinical diagnostic tool.** Patient-facing diagnostic AI: symptom checkers, patients using LLMs to self-diagnose or interpret their own results, AI triage tools patients interact with directly, and studies of diagnostic accuracy or harm when patients (not clinicians) are the users. Include how patient use of diagnostic AI changes the clinician-patient encounter — patients arriving with AI-generated differentials is directly relevant to what Angela's learners face at the bedside.
+
 ## Sources
 PubMed, medRxiv, arXiv (cs.CY, cs.CL, cs.HC), NEJM AI, JAMA, Academic Medicine, Journal of Graduate Medical Education, Medical Teacher, Journal of Hospital Medicine, npj Digital Medicine, Lancet Digital Health. Include preprints but LABEL them as preprints.
 
@@ -38,7 +40,7 @@ S6–8 opening + Friday Case Conference story · S9 "why only recent data" (mode
 
 Structure:
 1. **TL;DR** (3–5 bullets, plain language — Angela reads this on her phone between patients)
-2. **New articles** — per article: citation + URL, [peer-reviewed]/[preprint], 2–3 sentence summary in plain language, lane, and a one-line "why SAFE cares"
+2. **New articles** — per article: citation + URL, [peer-reviewed]/[preprint], 2–3 sentence summary in plain language, lane (A–D), and a one-line "why SAFE cares"
 3. **Recommended deck changes — minimum 3** — each formatted as:
    - Deck + slide number (or "new slide after SN")
    - What to change (specific: replace stat X with Y, add counterpoint, update benchmark)
